@@ -11,26 +11,24 @@ volatile int led_state_r = 0;
 volatile int led_state_g = 0;
 volatile int btn_flag = 0;
 
-void red_btn_callback(uint gpio, uint32_t events) {
-  if (events & GPIO_IRQ_EDGE_FALL) {
-    btn_flag = 1;
-    printf("Red button pressed\n");
-    if (led_state_r == 0) {
-      led_state_r = 1;
-    } else {
-      led_state_r = 0;
+void btn_callback(uint gpio, uint32_t events) {
+  if (gpio == BTN_PIN_R) {
+    if (events & GPIO_IRQ_EDGE_FALL) {
+      btn_flag = 1;
+      if (led_state_r == 0) {
+        led_state_r = 1;
+      } else {
+        led_state_r = 0;
+      }
     }
-  }
-}
-
-void green_btn_callback(uint gpio, uint32_t events) {
-  if (events & GPIO_IRQ_EDGE_RISE) {
-    btn_flag = 1;
-    printf("Green button pressed\n");
-    if (led_state_g == 0) {
-      led_state_g = 1;
-    } else {
-      led_state_g = 0;
+  } else if (gpio == BTN_PIN_G) {
+    if (events & GPIO_IRQ_EDGE_RISE) {
+      btn_flag = 1;
+      if (led_state_g == 0) {
+        led_state_g = 1;
+      } else {
+        led_state_g = 0;
+      }
     }
   }
 }
@@ -55,11 +53,9 @@ int main() {
   gpio_pull_up(BTN_PIN_G);
 
   gpio_set_irq_enabled_with_callback(
-    BTN_PIN_R, GPIO_IRQ_EDGE_FALL, true, &red_btn_callback
-  );
-  gpio_set_irq_enabled_with_callback(
-    BTN_PIN_G, GPIO_IRQ_EDGE_RISE, true, &green_btn_callback
-  );
+    BTN_PIN_R, GPIO_IRQ_EDGE_FALL, true, &btn_callback);
+  gpio_set_irq_enabled(
+    BTN_PIN_G, GPIO_IRQ_EDGE_RISE, true);
 
   while (true) {
     if (btn_flag) {
